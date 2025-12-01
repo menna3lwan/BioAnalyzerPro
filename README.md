@@ -7,9 +7,7 @@ A comprehensive desktop bioinformatics application for DNA sequence analysis, pa
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 
-## 📸 Screenshots
 
-![BioAnalyzer Pro Interface](assets/screenshot.png)
 
 ## ✨ Features
 
