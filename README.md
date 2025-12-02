@@ -330,7 +330,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```
 MIT License
 
-Copyright (c) 2024 BioAnalyzer Pro
+Copyright (c) 2025 BioAnalyzer Pro
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -351,9 +351,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 ## 👥 Authors
 
-- **Your Name** - *Initial work* - [YourGitHub](https://github.com/yourusername)
-
-See also the list of [contributors](https://github.com/yourusername/BioAnalyzerPro/contributors) who participated in this project.
+- **Menna Elwan** - *Initial work* - [YourGitHub](https://github.com/menna3lwan)
 
 ---
 
@@ -365,13 +363,6 @@ See also the list of [contributors](https://github.com/yourusername/BioAnalyzerP
 
 ---
 
-## 📞 Support
-
-- **Documentation:** [Wiki](https://github.com/yourusername/BioAnalyzerPro/wiki)
-- **Issues:** [Issue Tracker](https://github.com/yourusername/BioAnalyzerPro/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/BioAnalyzerPro/discussions)
-
----
 
 ## 🔮 Future Features
 
@@ -386,43 +377,11 @@ See also the list of [contributors](https://github.com/yourusername/BioAnalyzerP
 
 ---
 
-## 📊 Statistics
 
-![GitHub stars](https://img.shields.io/github/stars/yourusername/BioAnalyzerPro?style=social)
-![GitHub forks](https://img.shields.io/github/forks/yourusername/BioAnalyzerPro?style=social)
-![GitHub issues](https://img.shields.io/github/issues/yourusername/BioAnalyzerPro)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/yourusername/BioAnalyzerPro)
+
 
 ---
-
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/BioAnalyzerPro&type=Date)](https://star-history.com/#yourusername/BioAnalyzerPro&Date)
-
----
-
-## 📖 Citation
-
-If you use BioAnalyzer Pro in your research, please cite:
-
-```bibtex
-@software{bioanalyzer_pro,
-  author = {Your Name},
-  title = {BioAnalyzer Pro: A Comprehensive Bioinformatics Analysis Tool},
-  year = {2024},
-  url = {https://github.com/yourusername/BioAnalyzerPro}
-}
-```
-
----
-
-## 🔗 Related Projects
-
-- [Biopython](https://biopython.org/) - Python tools for computational biology
-- [BLAST](https://blast.ncbi.nlm.nih.gov/) - Basic Local Alignment Search Tool
-- [Clustal Omega](http://www.clustal.org/omega/) - Multiple sequence alignment
-
----
+-
 
 <div align="center">
 
