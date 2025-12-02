@@ -1,7 +1,7 @@
 """
 BioAnalyzer Pro - Main Application
 Complete Bioinformatics Desktop Tool
-All 7 Tabs with Full Implementation
+All 7 Tabs - COMPLETE VERSION
 """
 
 import tkinter as tk
@@ -9,14 +9,11 @@ from tkinter import ttk, scrolledtext, filedialog, messagebox
 import sys
 import os
 
-# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Import configurations
 from config import Colors, Fonts, Settings
 from ui.styles import setup_styles
 
-# Import all algorithm modules
 import algorithms.fasta_parser as fasta
 import algorithms.dna_operations as dna
 import algorithms.pattern_matching as pattern
@@ -26,38 +23,25 @@ import algorithms.assembly as assembly
 
 
 class BioAnalyzerApp:
-    """Main Application Class"""
-    
     def __init__(self, root):
         self.root = root
         self.setup_window()
         setup_styles()
         self.create_ui()
-        
-        # Variables for index search (persistent between operations)
         self.current_index = None
         self.current_seq = None
     
     def setup_window(self):
-        """Configure main window"""
         self.root.title(Settings.WINDOW_TITLE)
         self.root.geometry(Settings.WINDOW_SIZE)
         self.root.minsize(*Settings.MIN_SIZE)
         self.root.configure(bg=Colors.BACKGROUND)
     
     def create_ui(self):
-        """Create main UI"""
-        # Header
         self.create_header()
-        
-        # Notebook (Tabs)
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
-        
-        # Create all tabs
         self.create_all_tabs()
-        
-        # Status bar
         self.status_var = tk.StringVar(value="Ready")
         status_bar = tk.Label(self.root, textvariable=self.status_var,
                              bd=1, relief='sunken', anchor='w',
@@ -65,19 +49,15 @@ class BioAnalyzerApp:
         status_bar.pack(side='bottom', fill='x')
     
     def create_header(self):
-        """Create header section"""
         header = tk.Frame(self.root, bg=Colors.PRIMARY, height=80)
         header.pack(fill='x')
         header.pack_propagate(False)
-        
         tk.Label(header, text="🧬 BioAnalyzer Pro",
                  font=Fonts.TITLE, bg=Colors.PRIMARY, fg="white").pack(side='left', padx=20)
-        
         tk.Label(header, text="v1.0",
                  font=Fonts.STATUS, bg=Colors.PRIMARY, fg=Colors.TEXT_LIGHT).pack(side='left')
     
     def create_all_tabs(self):
-        """Create all 7 tabs"""
         self.create_fasta_tab()
         self.create_dna_tab()
         self.create_naive_tab()
@@ -87,32 +67,25 @@ class BioAnalyzerApp:
         self.create_assembly_tab()
     
     def update_status(self, message):
-        """Update status bar"""
         self.status_var.set(message)
         self.root.update_idletasks()
     
-    # ========================================================================
-    # TAB 1: FASTA PARSER
-    # Functions used: fasta.parse_fasta_file(), fasta.get_fasta_stats()
-    # ========================================================================
+    # TAB 1: FASTA
     def create_fasta_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['fasta'])
         
-        # Input Section
         tk.Label(tab, text="📁 Input", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
         btn_frame = tk.Frame(tab, bg=Colors.WHITE)
         btn_frame.pack(anchor='w', padx=20, pady=5)
         
-        tk.Button(btn_frame, text="⬆ Upload FASTA File",
-                  command=lambda: self.upload_fasta(),
+        tk.Button(btn_frame, text="⬆ Upload FASTA File", command=self.upload_fasta,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left', padx=(0, 10))
         
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_fasta_example(),
+        tk.Button(btn_frame, text="📝 Load Example", command=self.load_fasta_example,
                   bg=Colors.WHITE, fg=Colors.SECONDARY, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=15, pady=8, cursor='hand2').pack(side='left')
         
@@ -121,30 +94,10 @@ class BioAnalyzerApp:
         self.fasta_input.pack(fill='x', padx=20, pady=(5, 10))
         self.fasta_input.insert('1.0', "Paste FASTA formatted sequence here or upload file...")
         
-        # Parameters Section
-        tk.Label(tab, text="⚙️ Parameters", font=Fonts.HEADING,
-                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
-        
-        params_frame = tk.Frame(tab, bg=Colors.WHITE)
-        params_frame.pack(anchor='w', padx=20, pady=5)
-        
-        self.fasta_parse_headers = tk.BooleanVar(value=True)
-        self.fasta_validate = tk.BooleanVar(value=True)
-        
-        tk.Checkbutton(params_frame, text="Parse Sequence Headers",
-                       variable=self.fasta_parse_headers, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left', padx=(0, 20))
-        
-        tk.Checkbutton(params_frame, text="Validate Sequences",
-                       variable=self.fasta_validate, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left')
-        
-        # Action Buttons
         action_frame = tk.Frame(tab, bg=Colors.WHITE)
         action_frame.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame, text="▶ Parse FASTA",
-                  command=self.parse_fasta,
+        tk.Button(action_frame, text="▶ Parse FASTA", command=self.parse_fasta,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
@@ -153,34 +106,17 @@ class BioAnalyzerApp:
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
         
-        # Results Section
         tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
         self.fasta_results = scrolledtext.ScrolledText(tab, height=12, font=Fonts.TEXT,
                                                         bg=Colors.OUTPUT_BG, wrap='none', state='disabled')
-        self.fasta_results.pack(fill='both', expand=True, padx=20, pady=(5, 10))
-        
-        # Bottom Buttons
-        bottom_frame = tk.Frame(tab, bg=Colors.WHITE)
-        bottom_frame.pack(anchor='w', padx=20, pady=(0, 20))
-        
-        tk.Button(bottom_frame, text="💾 Save Results",
-                  command=lambda: self.save_results(self.fasta_results),
-                  bg=Colors.SUCCESS, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left', padx=(0, 10))
-        
-        tk.Button(bottom_frame, text="📋 Copy to Clipboard",
-                  command=lambda: self.copy_to_clipboard(self.fasta_results),
-                  bg=Colors.WHITE, fg=Colors.SECONDARY, font=Fonts.BUTTON,
-                  relief='solid', bd=1, padx=15, pady=8, cursor='hand2').pack(side='left')
+        self.fasta_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def upload_fasta(self):
-        """Upload FASTA file"""
         filepath = filedialog.askopenfilename(
             title="Select FASTA File",
-            filetypes=[("FASTA files", "*.fasta *.fa *.fna"), ("All files", "*.*")]
-        )
+            filetypes=[("FASTA files", "*.fasta *.fa *.fna"), ("All files", "*.*")])
         if filepath:
             try:
                 with open(filepath, 'r') as f:
@@ -192,19 +128,21 @@ class BioAnalyzerApp:
                 messagebox.showerror("Error", f"Failed to load file:\n{str(e)}")
     
     def load_fasta_example(self):
-        """Load example FASTA"""
-        example = """>sequence_1 hemolytic
-ATGCGATCGATCGATCG
-CGATCGATCGATCGATC
->sequence_2 non-hemolytic
+        example = """>sequence_1_hemolytic
+ATGCGATCGATCGATCGCGATCGATCGATCGATC
+>sequence_2_non_hemolytic
 GCTAGCTAGCTAGCTAG"""
         self.fasta_input.delete('1.0', 'end')
         self.fasta_input.insert('1.0', example)
         self.update_status("Example loaded")
     
     def parse_fasta(self):
-        """Parse FASTA using fasta.parse_simple_fasta()"""
-        content = self.fasta_input.get('1.0', 'end-1c').strip()
+        # Get content from text widget - tkinter uses different newline representation
+        content = self.fasta_input.get('1.0', 'end-1c')
+        
+        # Debug: check what we're getting
+        print(f"DEBUG - Raw content: {repr(content[:100])}")
+        
         if not content or "Paste FASTA" in content:
             messagebox.showwarning("Warning", "Please provide FASTA content")
             return
@@ -212,15 +150,10 @@ GCTAGCTAGCTAGCTAG"""
         try:
             self.update_status("Parsing FASTA...")
             
-            # Use parse_simple_fasta from fasta_parser module
             sequences = fasta.parse_simple_fasta(content)
-            
-            # Get stats using get_fasta_stats
             stats = fasta.get_fasta_stats(sequences)
             
-            result = "=" * 60 + "\n"
-            result += "FASTA PARSING RESULTS\n"
-            result += "=" * 60 + "\n\n"
+            result = "=" * 60 + "\nFASTA PARSING RESULTS\n" + "=" * 60 + "\n\n"
             result += f"Total Sequences: {stats['num_sequences']}\n"
             result += f"Total Length: {stats['total_length']} bp\n"
             result += f"Average Length: {stats['avg_length']:.1f} bp\n"
@@ -228,9 +161,7 @@ GCTAGCTAGCTAGCTAG"""
             result += f"Max Length: {stats['max_length']} bp\n\n"
             
             for i, (header, seq) in enumerate(sequences, 1):
-                result += f"Sequence {i}:\n"
-                result += f"Header: {header}\n"
-                result += f"Length: {len(seq)} bp\n"
+                result += f"Sequence {i}:\nHeader: {header}\nLength: {len(seq)} bp\n"
                 result += f"Sequence: {seq[:60]}{'...' if len(seq) > 60 else ''}\n\n"
             
             self.fasta_results.config(state='normal')
@@ -240,27 +171,25 @@ GCTAGCTAGCTAGCTAG"""
             
             self.update_status(f"✓ Parsed {len(sequences)} sequences")
         except Exception as e:
-            messagebox.showerror("Error", f"Parsing failed:\n{str(e)}")
+            import traceback
+            error_detail = traceback.format_exc()
+            error_msg = f"Parsing failed:\n{str(e)}\n\nContent preview (first 200 chars):\n{repr(content[:200])}\n\n"
+            messagebox.showerror("Error", error_msg)
+            print(f"Full error:\n{error_detail}")
             self.update_status("✗ Parsing failed")
     
-    # ========================================================================
-    # TAB 2: DNA ANALYSIS
-    # Functions used: dna.gc_content(), dna.at_content(), dna.complement(),
-    #                 dna.reverse_complement(), dna.translate()
-    # ========================================================================
+    # TAB 2: DNA
     def create_dna_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['dna'])
         
-        # Input Section
         tk.Label(tab, text="📁 DNA Sequence", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
         btn_frame = tk.Frame(tab, bg=Colors.WHITE)
         btn_frame.pack(anchor='w', padx=20, pady=5)
         
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_dna_example(),
+        tk.Button(btn_frame, text="📝 Load Example", command=self.load_dna_example,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left')
         
@@ -269,35 +198,10 @@ GCTAGCTAGCTAGCTAG"""
         self.dna_input.pack(fill='x', padx=20, pady=(5, 10))
         self.dna_input.insert('1.0', "Paste DNA sequence here...")
         
-        # Parameters Section
-        tk.Label(tab, text="⚙️ Analysis Options", font=Fonts.HEADING,
-                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
-        
-        params_frame = tk.Frame(tab, bg=Colors.WHITE)
-        params_frame.pack(anchor='w', padx=20, pady=5)
-        
-        self.dna_gc = tk.BooleanVar(value=True)
-        self.dna_at = tk.BooleanVar(value=True)
-        self.dna_comp = tk.BooleanVar(value=True)
-        
-        tk.Checkbutton(params_frame, text="Calculate GC Content",
-                       variable=self.dna_gc, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left', padx=(0, 15))
-        
-        tk.Checkbutton(params_frame, text="Calculate AT Content",
-                       variable=self.dna_at, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left', padx=(0, 15))
-        
-        tk.Checkbutton(params_frame, text="Show Complement",
-                       variable=self.dna_comp, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left')
-        
-        # Action Buttons
         action_frame = tk.Frame(tab, bg=Colors.WHITE)
         action_frame.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame, text="▶ Run Analysis",
-                  command=self.analyze_dna,
+        tk.Button(action_frame, text="▶ Run Analysis", command=self.analyze_dna,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
@@ -306,7 +210,6 @@ GCTAGCTAGCTAGCTAG"""
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
         
-        # Results Section
         tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -315,14 +218,11 @@ GCTAGCTAGCTAGCTAG"""
         self.dna_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def load_dna_example(self):
-        """Load example DNA sequence"""
-        example = "ATGGCGTCGCTGTGGAGGCGATCGATCG"
         self.dna_input.delete('1.0', 'end')
-        self.dna_input.insert('1.0', example)
+        self.dna_input.insert('1.0', "ATGGCGTCGCTGTGGAGGCGATCGATCG")
         self.update_status("Example loaded")
     
     def analyze_dna(self):
-        """Analyze DNA using dna module functions"""
         seq = self.dna_input.get('1.0', 'end-1c').strip().upper()
         if not seq or "Paste DNA" in seq:
             messagebox.showwarning("Warning", "Please provide a DNA sequence")
@@ -333,26 +233,15 @@ GCTAGCTAGCTAGCTAG"""
             result = "=" * 60 + "\nDNA SEQUENCE ANALYSIS\n" + "=" * 60 + "\n\n"
             result += f"Input Sequence: {seq[:60]}{'...' if len(seq) > 60 else ''}\n"
             result += f"Length: {len(seq)} bp\n\n"
+            result += f"GC Content: {dna.gc_content(seq):.2f}%\n"
+            result += f"AT Content: {dna.at_content(seq):.2f}%\n"
             
-            # Use dna.gc_content()
-            if self.dna_gc.get():
-                gc = dna.gc_content(seq)
-                result += f"GC Content: {gc:.2f}%\n"
+            comp = dna.complement(seq)
+            result += f"\nComplement: {comp[:60]}{'...' if len(comp) > 60 else ''}\n"
             
-            # Use dna.at_content()
-            if self.dna_at.get():
-                at = dna.at_content(seq)
-                result += f"AT Content: {at:.2f}%\n"
+            rev_comp = dna.reverse_complement(seq)
+            result += f"Reverse Complement: {rev_comp[:60]}{'...' if len(rev_comp) > 60 else ''}\n"
             
-            # Use dna.complement() and dna.reverse_complement()
-            if self.dna_comp.get():
-                comp = dna.complement(seq)
-                result += f"\nComplement: {comp[:60]}{'...' if len(comp) > 60 else ''}\n"
-                
-                rev_comp = dna.reverse_complement(seq)
-                result += f"Reverse Complement: {rev_comp[:60]}{'...' if len(rev_comp) > 60 else ''}\n"
-            
-            # Use dna.translate()
             protein = dna.translate(seq)
             result += f"\nTranslation: {protein[:60]}{'...' if len(protein) > 60 else ''}\n"
             
@@ -366,25 +255,17 @@ GCTAGCTAGCTAGCTAG"""
             messagebox.showerror("Error", f"Analysis failed:\n{str(e)}")
             self.update_status("✗ Analysis failed")
     
-    # ========================================================================
-    # TAB 3: NAIVE SEARCH
-    # Functions used: pattern.naive_match(), pattern.format_match_results()
-    # ========================================================================
+    # TAB 3: NAIVE
     def create_naive_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['naive'])
         
-        # Input Section
         tk.Label(tab, text="📁 Input Sequence", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
-        btn_frame = tk.Frame(tab, bg=Colors.WHITE)
-        btn_frame.pack(anchor='w', padx=20, pady=5)
-        
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_naive_example(),
+        tk.Button(tab, text="📝 Load Example", command=self.load_naive_example,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left')
+                  relief='flat', padx=15, pady=8, cursor='hand2').pack(anchor='w', padx=20, pady=5)
         
         self.naive_seq = scrolledtext.ScrolledText(tab, height=4, font=Fonts.TEXT,
                                                     bg=Colors.INPUT_BG, wrap='char')
@@ -397,12 +278,10 @@ GCTAGCTAGCTAGCTAG"""
         self.naive_pattern = tk.Entry(tab, font=Fonts.TEXT, bg=Colors.INPUT_BG)
         self.naive_pattern.pack(fill='x', padx=20, pady=(5, 10))
         
-        # Action Buttons
         action_frame = tk.Frame(tab, bg=Colors.WHITE)
         action_frame.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame, text="🔍 Run Naive Search",
-                  command=self.run_naive_search,
+        tk.Button(action_frame, text="🔍 Run Naive Search", command=self.run_naive_search,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
@@ -411,7 +290,6 @@ GCTAGCTAGCTAGCTAG"""
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
         
-        # Results Section
         tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -420,7 +298,6 @@ GCTAGCTAGCTAGCTAG"""
         self.naive_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def load_naive_example(self):
-        """Load example for naive search"""
         self.naive_seq.delete('1.0', 'end')
         self.naive_seq.insert('1.0', "ATGCGATCGATCGATCGATCGATCGATCG")
         self.naive_pattern.delete(0, 'end')
@@ -428,7 +305,6 @@ GCTAGCTAGCTAGCTAG"""
         self.update_status("Example loaded")
     
     def run_naive_search(self):
-        """Run naive search using pattern.naive_match()"""
         seq = self.naive_seq.get('1.0', 'end-1c').strip().upper()
         pat = self.naive_pattern.get().strip().upper()
         
@@ -438,18 +314,14 @@ GCTAGCTAGCTAGCTAG"""
         
         try:
             self.update_status("Searching...")
-            
-            # Use pattern.naive_match()
             positions = pattern.naive_match(seq, pat)
             
             result = "=" * 60 + "\nNAIVE PATTERN SEARCH\n" + "=" * 60 + "\n\n"
             result += f"Sequence Length: {len(seq)} bp\n"
-            result += f"Pattern: {pat}\n"
-            result += f"Pattern Length: {len(pat)} bp\n\n"
+            result += f"Pattern: {pat}\nPattern Length: {len(pat)} bp\n\n"
             
             if positions:
                 result += f"✓ Found {len(positions)} match(es):\n\n"
-                # Use pattern.format_match_results()
                 result += pattern.format_match_results(seq, pat, positions)
             else:
                 result += "✗ Pattern not found\n"
@@ -464,26 +336,17 @@ GCTAGCTAGCTAGCTAG"""
             messagebox.showerror("Error", str(e))
             self.update_status("✗ Search failed")
     
-    # ========================================================================
-    # TAB 4: BOYER-MOORE SEARCH
-    # Functions used: pattern.boyer_moore_match(), pattern.format_bad_char_table(),
-    #                 pattern.format_match_results()
-    # ========================================================================
+    # TAB 4: BOYER-MOORE
     def create_boyer_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['boyer'])
         
-        # Input Section
         tk.Label(tab, text="📁 Input Sequence", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
-        btn_frame = tk.Frame(tab, bg=Colors.WHITE)
-        btn_frame.pack(anchor='w', padx=20, pady=5)
-        
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_boyer_example(),
+        tk.Button(tab, text="📝 Load Example", command=self.load_boyer_example,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left')
+                  relief='flat', padx=15, pady=8, cursor='hand2').pack(anchor='w', padx=20, pady=5)
         
         self.boyer_seq = scrolledtext.ScrolledText(tab, height=4, font=Fonts.TEXT,
                                                     bg=Colors.INPUT_BG, wrap='char')
@@ -496,24 +359,10 @@ GCTAGCTAGCTAGCTAG"""
         self.boyer_pattern = tk.Entry(tab, font=Fonts.TEXT, bg=Colors.INPUT_BG)
         self.boyer_pattern.pack(fill='x', padx=20, pady=(5, 10))
         
-        # Parameters Section
-        tk.Label(tab, text="⚙️ Options", font=Fonts.HEADING,
-                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
-        
-        params_frame = tk.Frame(tab, bg=Colors.WHITE)
-        params_frame.pack(anchor='w', padx=20, pady=5)
-        
-        self.show_bc_table = tk.BooleanVar(value=True)
-        tk.Checkbutton(params_frame, text="Show Bad Character Table",
-                       variable=self.show_bc_table, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left')
-        
-        # Action Buttons
         action_frame = tk.Frame(tab, bg=Colors.WHITE)
         action_frame.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame, text="⚡ Run Boyer-Moore",
-                  command=self.run_boyer_search,
+        tk.Button(action_frame, text="⚡ Run Boyer-Moore", command=self.run_boyer_search,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
@@ -522,7 +371,6 @@ GCTAGCTAGCTAGCTAG"""
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
         
-        # Results Section
         tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -531,7 +379,6 @@ GCTAGCTAGCTAGCTAG"""
         self.boyer_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def load_boyer_example(self):
-        """Load example for Boyer-Moore"""
         self.boyer_seq.delete('1.0', 'end')
         self.boyer_seq.insert('1.0', "ATGCGATCGATCGATCGATCGATCGATCG")
         self.boyer_pattern.delete(0, 'end')
@@ -539,7 +386,6 @@ GCTAGCTAGCTAGCTAG"""
         self.update_status("Example loaded")
     
     def run_boyer_search(self):
-        """Run Boyer-Moore search using pattern.boyer_moore_match()"""
         seq = self.boyer_seq.get('1.0', 'end-1c').strip().upper()
         pat = self.boyer_pattern.get().strip().upper()
         
@@ -549,25 +395,17 @@ GCTAGCTAGCTAGCTAG"""
         
         try:
             self.update_status("Running Boyer-Moore...")
-            
-            # Use pattern.boyer_moore_match()
             positions, bc_table = pattern.boyer_moore_match(seq, pat)
             
             result = "=" * 60 + "\nBOYER-MOORE PATTERN SEARCH\n" + "=" * 60 + "\n\n"
             result += f"Sequence Length: {len(seq)} bp\n"
-            result += f"Pattern: {pat}\n"
-            result += f"Pattern Length: {len(pat)} bp\n\n"
-            
-            # Show bad character table if option is enabled
-            if self.show_bc_table.get() and bc_table:
-                result += "Bad Character Table:\n"
-                # Use pattern.format_bad_char_table()
-                result += pattern.format_bad_char_table(bc_table, pat)
-                result += "\n"
+            result += f"Pattern: {pat}\nPattern Length: {len(pat)} bp\n\n"
+            result += "Bad Character Table:\n"
+            result += pattern.format_bad_char_table(bc_table, pat)
+            result += "\n"
             
             if positions:
                 result += f"✓ Found {len(positions)} match(es):\n\n"
-                # Use pattern.format_match_results()
                 result += pattern.format_match_results(seq, pat, positions)
             else:
                 result += "✗ Pattern not found\n"
@@ -582,33 +420,23 @@ GCTAGCTAGCTAGCTAG"""
             messagebox.showerror("Error", str(e))
             self.update_status("✗ Search failed")
     
-    # ========================================================================
-    # TAB 5: INDEX SEARCH
-    # Functions used: index.build_index(), index.query_index(),
-    #                 index.get_index_stats(), index.format_index_table()
-    # ========================================================================
+    # TAB 5: INDEX - FIXED
     def create_index_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['index'])
         
-        # Input Section
         tk.Label(tab, text="📁 Input Sequence", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
-        btn_frame = tk.Frame(tab, bg=Colors.WHITE)
-        btn_frame.pack(anchor='w', padx=20, pady=5)
-        
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_index_example(),
+        tk.Button(tab, text="📝 Load Example", command=self.load_index_example,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left')
+                  relief='flat', padx=15, pady=8, cursor='hand2').pack(anchor='w', padx=20, pady=5)
         
         self.index_seq = scrolledtext.ScrolledText(tab, height=4, font=Fonts.TEXT,
                                                     bg=Colors.INPUT_BG, wrap='char')
         self.index_seq.pack(fill='x', padx=20, pady=(5, 10))
         self.index_seq.insert('1.0', "Paste sequence here...")
         
-        # Parameters Section
         tk.Label(tab, text="⚙️ K-mer Size", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -618,43 +446,32 @@ GCTAGCTAGCTAGCTAG"""
         tk.Label(params_frame, text="K-mer length:", font=Fonts.LABEL,
                  bg=Colors.WHITE).pack(side='left', padx=(0, 10))
         
-        self.kmer_size = tk.Spinbox(params_frame, from_=2, to=10, width=10,
-                                     font=Fonts.LABEL)
+        self.kmer_size = tk.Spinbox(params_frame, from_=2, to=10, width=10, font=Fonts.LABEL)
         self.kmer_size.delete(0, 'end')
         self.kmer_size.insert(0, '3')
         self.kmer_size.pack(side='left')
         
-        # Build Index Button
         action_frame1 = tk.Frame(tab, bg=Colors.WHITE)
         action_frame1.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame1, text="🔨 Build Index",
-                  command=self.build_sequence_index,
+        tk.Button(action_frame1, text="🔨 Build Index", command=self.build_sequence_index,
                   bg=Colors.ACCENT, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
-        tk.Button(action_frame1, text="🗑️ Clear",
-                  command=lambda: self.clear_index_tab(),
+        tk.Button(action_frame1, text="🗑️ Clear", command=self.clear_index_tab,
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
         
-        # Pattern Search Section
         tk.Label(tab, text="🔍 Search Pattern", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
         self.index_pattern = tk.Entry(tab, font=Fonts.TEXT, bg=Colors.INPUT_BG)
         self.index_pattern.pack(fill='x', padx=20, pady=(5, 10))
         
-        # Search Button
-        action_frame2 = tk.Frame(tab, bg=Colors.WHITE)
-        action_frame2.pack(anchor='w', padx=20, pady=10)
-        
-        tk.Button(action_frame2, text="🔍 Search in Index",
-                  command=self.search_in_index,
+        tk.Button(tab, text="🔍 Search in Index", command=self.search_in_index,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left')
+                  relief='flat', padx=20, pady=10, cursor='hand2').pack(anchor='w', padx=20, pady=10)
         
-        # Results Section
         tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -663,7 +480,6 @@ GCTAGCTAGCTAGCTAG"""
         self.index_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def load_index_example(self):
-        """Load example for index search"""
         self.index_seq.delete('1.0', 'end')
         self.index_seq.insert('1.0', "ATGCGATCGATCGATCGATCGATCGATCG")
         self.index_pattern.delete(0, 'end')
@@ -671,7 +487,6 @@ GCTAGCTAGCTAGCTAG"""
         self.update_status("Example loaded")
     
     def build_sequence_index(self):
-        """Build k-mer index using index.build_index()"""
         seq = self.index_seq.get('1.0', 'end-1c').strip().upper()
         if not seq or "Paste sequence" in seq:
             messagebox.showwarning("Warning", "Please provide a sequence")
@@ -681,11 +496,9 @@ GCTAGCTAGCTAGCTAG"""
             k = int(self.kmer_size.get())
             self.update_status(f"Building {k}-mer index...")
             
-            # Use index.build_index()
             self.current_index = index.build_index(seq, k)
             self.current_seq = seq
             
-            # Use index.get_index_stats()
             stats = index.get_index_stats(self.current_index, seq, k)
             
             result = "=" * 60 + "\nINDEX BUILT SUCCESSFULLY\n" + "=" * 60 + "\n\n"
@@ -693,9 +506,7 @@ GCTAGCTAGCTAGCTAG"""
             result += f"K-mer Size: {stats['k']}\n"
             result += f"Unique K-mers: {stats['unique_kmers']}\n"
             result += f"Total K-mers: {stats['total_kmers']}\n\n"
-            
             result += "K-mer Index Table:\n"
-            # Use index.format_index_table()
             result += index.format_index_table(self.current_index)
             
             self.index_results.config(state='normal')
@@ -709,7 +520,6 @@ GCTAGCTAGCTAGCTAG"""
             self.update_status("✗ Index build failed")
     
     def search_in_index(self):
-        """Search pattern using index.query_index()"""
         if self.current_index is None:
             messagebox.showwarning("Warning", "Please build the index first")
             return
@@ -721,13 +531,10 @@ GCTAGCTAGCTAGCTAG"""
         
         try:
             self.update_status("Searching in index...")
-            
-            # Use index.query_index()
             positions = index.query_index(self.current_index, self.current_seq, pat)
             
             result = "=" * 60 + "\nINDEX SEARCH RESULTS\n" + "=" * 60 + "\n\n"
-            result += f"Pattern: {pat}\n"
-            result += f"Pattern Length: {len(pat)} bp\n\n"
+            result += f"Pattern: {pat}\nPattern Length: {len(pat)} bp\n\n"
             
             if positions:
                 result += f"✓ Found {len(positions)} match(es):\n\n"
@@ -735,8 +542,7 @@ GCTAGCTAGCTAGCTAG"""
                     context_start = max(0, pos - 10)
                     context_end = min(len(self.current_seq), pos + len(pat) + 10)
                     context = self.current_seq[context_start:context_end]
-                    result += f"Match {i} at position {pos}:\n"
-                    result += f"  {context}\n"
+                    result += f"Match {i} at position {pos}:\n  {context}\n"
                     result += f"  {' ' * (pos - context_start)}{'^' * len(pat)}\n\n"
                 
                 if len(positions) > 10:
@@ -755,7 +561,6 @@ GCTAGCTAGCTAGCTAG"""
             self.update_status("✗ Search failed")
     
     def clear_index_tab(self):
-        """Clear index tab and reset index"""
         self.index_seq.delete('1.0', 'end')
         self.index_pattern.delete(0, 'end')
         self.index_results.config(state='normal')
@@ -765,45 +570,33 @@ GCTAGCTAGCTAGCTAG"""
         self.current_seq = None
         self.update_status("Cleared")
     
-    # ========================================================================
-    # TAB 6: SUFFIX ARRAY
-    # Functions used: suffix.build_suffix_array(), suffix.format_suffix_array()
-    # ========================================================================
+    # TAB 6: SUFFIX
     def create_suffix_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['suffix'])
         
-        # Input Section
-        tk.Label(tab, text="📁 Input Sequence (max 20 chars for visualization)", 
+        tk.Label(tab, text="📁 Input Sequence (max 20 chars)", 
                  font=Fonts.HEADING, bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
-        btn_frame = tk.Frame(tab, bg=Colors.WHITE)
-        btn_frame.pack(anchor='w', padx=20, pady=5)
-        
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_suffix_example(),
+        tk.Button(tab, text="📝 Load Example", command=self.load_suffix_example,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left')
+                  relief='flat', padx=15, pady=8, cursor='hand2').pack(anchor='w', padx=20, pady=5)
         
         self.suffix_seq = tk.Entry(tab, font=Fonts.TEXT, bg=Colors.INPUT_BG)
         self.suffix_seq.pack(fill='x', padx=20, pady=(5, 10))
         self.suffix_seq.insert(0, "Enter short sequence (e.g., BANANA)...")
         
-        # Action Buttons
         action_frame = tk.Frame(tab, bg=Colors.WHITE)
         action_frame.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame, text="🔨 Build Suffix Array",
-                  command=self.build_suffix_array_viz,
+        tk.Button(action_frame, text="🔨 Build Suffix Array", command=self.build_suffix_array_viz,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
-        tk.Button(action_frame, text="🗑️ Clear",
-                  command=lambda: self.clear_suffix_tab(),
+        tk.Button(action_frame, text="🗑️ Clear", command=self.clear_suffix_tab,
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
         
-        # Results Section
         tk.Label(tab, text="📊 Suffix Array Construction", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -812,13 +605,11 @@ GCTAGCTAGCTAGCTAG"""
         self.suffix_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def load_suffix_example(self):
-        """Load example for suffix array"""
         self.suffix_seq.delete(0, 'end')
         self.suffix_seq.insert(0, "BANANA")
         self.update_status("Example loaded")
     
     def build_suffix_array_viz(self):
-        """Build suffix array using suffix.build_suffix_array()"""
         seq = self.suffix_seq.get().strip().upper()
         if not seq or "Enter short" in seq:
             messagebox.showwarning("Warning", "Please provide a sequence")
@@ -830,15 +621,10 @@ GCTAGCTAGCTAGCTAG"""
         
         try:
             self.update_status("Building suffix array...")
-            
-            # Use suffix.build_suffix_array()
             sa, steps = suffix.build_suffix_array(seq)
             
             result = "=" * 60 + "\nSUFFIX ARRAY CONSTRUCTION\n" + "=" * 60 + "\n\n"
-            result += f"Input Sequence: {seq}\n"
-            result += f"Length: {len(seq)}\n\n"
-            
-            # Use suffix.format_suffix_array()
+            result += f"Input Sequence: {seq}\nLength: {len(seq)}\n\n"
             result += suffix.format_suffix_array(seq, sa, steps)
             
             self.suffix_results.config(state='normal')
@@ -848,45 +634,37 @@ GCTAGCTAGCTAGCTAG"""
             
             self.update_status("✓ Suffix array built")
         except Exception as e:
-            messagebox.showerror("Error", str(e))
+            import traceback
+            error_detail = traceback.format_exc()
+            error_msg = f"Build failed:\n{str(e)}\n\nSequence: {seq}\n\nFull error:\n{error_detail}"
+            messagebox.showerror("Error", error_msg)
+            print(f"Suffix array error:\n{error_detail}")
             self.update_status("✗ Build failed")
     
     def clear_suffix_tab(self):
-        """Clear suffix array tab"""
         self.suffix_seq.delete(0, 'end')
         self.suffix_results.config(state='normal')
         self.suffix_results.delete('1.0', 'end')
         self.suffix_results.config(state='disabled')
         self.update_status("Cleared")
     
-    # ========================================================================
-    # TAB 7: SEQUENCE ASSEMBLY
-    # Functions used: assembly.find_all_overlaps(), assembly.get_overlap_stats(),
-    #                 assembly.format_overlap_table(), assembly.visualize_overlap(),
-    #                 assembly.greedy_assembly()
-    # ========================================================================
+    # TAB 7: ASSEMBLY
     def create_assembly_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['assembly'])
         
-        # Input Section
         tk.Label(tab, text="📁 Input Sequences (one per line)", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
         
-        btn_frame = tk.Frame(tab, bg=Colors.WHITE)
-        btn_frame.pack(anchor='w', padx=20, pady=5)
-        
-        tk.Button(btn_frame, text="📝 Load Example",
-                  command=lambda: self.load_assembly_example(),
+        tk.Button(tab, text="📝 Load Example", command=self.load_assembly_example,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
-                  relief='flat', padx=15, pady=8, cursor='hand2').pack(side='left')
+                  relief='flat', padx=15, pady=8, cursor='hand2').pack(anchor='w', padx=20, pady=5)
         
         self.assembly_seqs = scrolledtext.ScrolledText(tab, height=6, font=Fonts.TEXT,
                                                         bg=Colors.INPUT_BG, wrap='word')
         self.assembly_seqs.pack(fill='x', padx=20, pady=(5, 10))
         self.assembly_seqs.insert('1.0', "Paste sequences here (one per line)...")
         
-        # Parameters Section
         tk.Label(tab, text="⚙️ Parameters", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -896,28 +674,19 @@ GCTAGCTAGCTAGCTAG"""
         tk.Label(params_frame, text="Minimum Overlap:", font=Fonts.LABEL,
                  bg=Colors.WHITE).pack(side='left', padx=(0, 10))
         
-        self.min_overlap = tk.Spinbox(params_frame, from_=2, to=20, width=10,
-                                       font=Fonts.LABEL)
+        self.min_overlap = tk.Spinbox(params_frame, from_=2, to=20, width=10, font=Fonts.LABEL)
         self.min_overlap.delete(0, 'end')
         self.min_overlap.insert(0, '3')
-        self.min_overlap.pack(side='left', padx=(0, 20))
+        self.min_overlap.pack(side='left')
         
-        self.show_steps = tk.BooleanVar(value=True)
-        tk.Checkbutton(params_frame, text="Show Assembly Steps",
-                       variable=self.show_steps, font=Fonts.LABEL,
-                       bg=Colors.WHITE).pack(side='left')
-        
-        # Action Buttons
         action_frame = tk.Frame(tab, bg=Colors.WHITE)
         action_frame.pack(anchor='w', padx=20, pady=10)
         
-        tk.Button(action_frame, text="🔍 Find Overlaps",
-                  command=self.find_overlaps,
+        tk.Button(action_frame, text="🔍 Find Overlaps", command=self.find_overlaps,
                   bg=Colors.ACCENT, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=15, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
-        tk.Button(action_frame, text="🧩 Greedy Assembly",
-                  command=self.run_greedy_assembly,
+        tk.Button(action_frame, text="🧩 Greedy Assembly", command=self.run_greedy_assembly,
                   bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
                   relief='flat', padx=15, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
         
@@ -926,7 +695,6 @@ GCTAGCTAGCTAGCTAG"""
                   bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
                   relief='solid', bd=1, padx=15, pady=10, cursor='hand2').pack(side='left')
         
-        # Results Section
         tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
         
@@ -935,24 +703,18 @@ GCTAGCTAGCTAGCTAG"""
         self.assembly_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
     
     def load_assembly_example(self):
-        """Load example sequences for assembly"""
-        example = """ATGCGATCG
-TCGATCGAT
-ATCGATCGC
-CGCTAGCTA"""
+        example = "ATGCGATCG\nTCGATCGAT\nATCGATCGC\nCGCTAGCTA"
         self.assembly_seqs.delete('1.0', 'end')
         self.assembly_seqs.insert('1.0', example)
         self.update_status("Example loaded")
     
     def find_overlaps(self):
-        """Find overlaps using assembly.find_all_overlaps()"""
         content = self.assembly_seqs.get('1.0', 'end-1c').strip()
         if not content or "Paste sequences" in content:
             messagebox.showwarning("Warning", "Please provide sequences")
             return
         
         try:
-            # Parse sequences
             sequences = [s.strip().upper() for s in content.split('\n') if s.strip()]
             if len(sequences) < 2:
                 messagebox.showwarning("Warning", "Please provide at least 2 sequences")
@@ -961,10 +723,7 @@ CGCTAGCTA"""
             min_ov = int(self.min_overlap.get())
             self.update_status("Finding overlaps...")
             
-            # Use assembly.find_all_overlaps()
             overlaps = assembly.find_all_overlaps(sequences, min_ov)
-            
-            # Use assembly.get_overlap_stats()
             stats = assembly.get_overlap_stats(overlaps, sequences)
             
             result = "=" * 60 + "\nOVERLAP ANALYSIS\n" + "=" * 60 + "\n\n"
@@ -976,10 +735,8 @@ CGCTAGCTA"""
             
             if overlaps:
                 result += "Overlap Table:\n"
-                # Use assembly.format_overlap_table()
                 result += assembly.format_overlap_table(overlaps)
                 result += "\n\nOverlap Visualization:\n"
-                # Use assembly.visualize_overlap()
                 for i, j, length, _ in overlaps[:5]:
                     result += assembly.visualize_overlap(sequences[i], sequences[j], length)
                     result += "\n"
@@ -1000,14 +757,12 @@ CGCTAGCTA"""
             self.update_status("✗ Overlap analysis failed")
     
     def run_greedy_assembly(self):
-        """Run greedy assembly using assembly.greedy_assembly()"""
         content = self.assembly_seqs.get('1.0', 'end-1c').strip()
         if not content or "Paste sequences" in content:
             messagebox.showwarning("Warning", "Please provide sequences")
             return
         
         try:
-            # Parse sequences
             sequences = [s.strip().upper() for s in content.split('\n') if s.strip()]
             if len(sequences) < 2:
                 messagebox.showwarning("Warning", "Please provide at least 2 sequences")
@@ -1016,28 +771,13 @@ CGCTAGCTA"""
             min_ov = int(self.min_overlap.get())
             self.update_status("Running greedy assembly...")
             
-            # Use assembly.greedy_assembly()
             contig, steps = assembly.greedy_assembly(sequences, min_ov)
             
             result = "=" * 60 + "\nGREEDY ASSEMBLY RESULTS\n" + "=" * 60 + "\n\n"
             result += f"Input Sequences: {len(sequences)}\n"
             result += f"Minimum Overlap: {min_ov} bp\n\n"
+            result += f"Final Contig:\nLength: {len(contig)} bp\nSequence: {contig}\n\n"
             
-            if self.show_steps.get() and steps:
-                result += "Assembly Steps:\n"
-                result += "-" * 60 + "\n"
-                for step_num, step_info in enumerate(steps, 1):
-                    result += f"\nStep {step_num}:\n"
-                    result += f"  Merged: seq{step_info['seq1_idx']} + seq{step_info['seq2_idx']}\n"
-                    result += f"  Overlap: {step_info['overlap']} bp\n"
-                    result += f"  Result length: {len(step_info['result'])} bp\n"
-                result += "\n" + "=" * 60 + "\n\n"
-            
-            result += f"Final Contig:\n"
-            result += f"Length: {len(contig)} bp\n"
-            result += f"Sequence: {contig}\n\n"
-            
-            # Calculate compression
             total_input = sum(len(s) for s in sequences)
             compression = ((total_input - len(contig)) / total_input * 100) if total_input > 0 else 0
             result += f"Compression: {compression:.1f}%\n"
@@ -1053,52 +793,16 @@ CGCTAGCTA"""
             messagebox.showerror("Error", str(e))
             self.update_status("✗ Assembly failed")
     
-    # ========================================================================
-    # UTILITY FUNCTIONS
-    # ========================================================================
+    # UTILITY
     def clear_tab(self, input_widget, output_widget):
-        """Clear both input and output widgets"""
         input_widget.delete('1.0', 'end')
         output_widget.config(state='normal')
         output_widget.delete('1.0', 'end')
         output_widget.config(state='disabled')
         self.update_status("Cleared")
-    
-    def save_results(self, results_widget):
-        """Save results to file"""
-        content = results_widget.get('1.0', 'end-1c')
-        if not content.strip():
-            messagebox.showwarning("Warning", "No results to save")
-            return
-        
-        filepath = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-        )
-        if filepath:
-            try:
-                with open(filepath, 'w') as f:
-                    f.write(content)
-                messagebox.showinfo("Success", "Results saved successfully!")
-                self.update_status("✓ Results saved")
-            except Exception as e:
-                messagebox.showerror("Error", f"Failed to save:\n{str(e)}")
-    
-    def copy_to_clipboard(self, results_widget):
-        """Copy results to clipboard"""
-        content = results_widget.get('1.0', 'end-1c')
-        if content.strip():
-            self.root.clipboard_clear()
-            self.root.clipboard_append(content)
-            messagebox.showinfo("Success", "Copied to clipboard!")
-            self.update_status("✓ Copied to clipboard")
 
 
-# ============================================================================
-# MAIN ENTRY POINT
-# ============================================================================
 def main():
-    """Run the application"""
     root = tk.Tk()
     app = BioAnalyzerApp(root)
     root.mainloop()

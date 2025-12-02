@@ -1,5 +1,5 @@
 """
-Index-Based Search Algorithm
+Index Search Module
 K-mer indexing for fast pattern matching
 """
 
@@ -19,19 +19,20 @@ def build_index(seq, k):
     """
     index = []
     for i in range(len(seq) - k + 1):
-        index.append((seq[i:i+k], i))
+        kmer = seq[i:i+k]
+        index.append((kmer, i))
     index.sort()
     return index
 
 
-def query_index(t, p, index):
+def query_index(index, seq, pattern):
     """
     Query index to find pattern
     
     Args:
-        t: Original sequence
-        p: Pattern to search
-        index: Sorted index
+        index: Sorted k-mer index
+        seq: Original sequence
+        pattern: Pattern to search
         
     Returns:
         List of positions where pattern is found
@@ -39,54 +40,77 @@ def query_index(t, p, index):
     if not index:
         return []
     
-    keys = [r[0] for r in index]
-    k_len = len(keys[0])
+    # Get k-mer length from index
+    k = len(index[0][0])
     
-    st = bisect.bisect_left(keys, p[:k_len])
-    en = bisect.bisect(keys, p[:k_len])
-    hits = index[st:en]
+    # Extract all k-mers from index
+    keys = [kmer for kmer, pos in index]
     
-    l = [h[1] for h in hits]
-    offsets = []
-    for i in l:
-        if t[i:i+len(p)] == p:
-            offsets.append(i)
+    # Find range of k-mers that match pattern prefix
+    query_kmer = pattern[:k]
+    st = bisect.bisect_left(keys, query_kmer)
+    en = bisect.bisect_right(keys, query_kmer)
     
-    return offsets
+    # Get candidate positions
+    candidates = [pos for kmer, pos in index[st:en]]
+    
+    # Verify full pattern match
+    matches = []
+    for pos in candidates:
+        if seq[pos:pos+len(pattern)] == pattern:
+            matches.append(pos)
+    
+    return sorted(matches)
 
 
-def get_index_stats(index):
+def get_index_stats(index, seq, k):
     """Get statistics about the index"""
     if not index:
-        return {}
+        return {
+            'sequence_length': len(seq),
+            'k': k,
+            'unique_kmers': 0,
+            'total_kmers': 0
+        }
     
-    kmer_counts = {}
-    for kmer, pos in index:
-        kmer_counts[kmer] = kmer_counts.get(kmer, 0) + 1
+    # Count unique k-mers
+    unique_kmers = len(set(kmer for kmer, pos in index))
     
     return {
-        'total_kmers': len(index),
-        'unique_kmers': len(kmer_counts),
-        'k': len(index[0][0]) if index else 0,
-        'most_common': sorted(kmer_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        'sequence_length': len(seq),
+        'k': k,
+        'unique_kmers': unique_kmers,
+        'total_kmers': len(index)
     }
 
 
 def format_index_table(index, max_rows=20):
     """Format index table for display"""
     if not index:
-        return "Index is empty"
+        return "Index is empty\n"
     
-    result = "K-mer Index (sorted):\n\n"
-    result += "K-mer    Position\n"
-    result += "-" * 20 + "\n"
+    result = "\n"
+    result += f"{'K-mer':<10s} {'Positions':<50s}\n"
+    result += "-" * 60 + "\n"
     
-    for kmer, pos in index[:min(max_rows, len(index))]:
-        result += f"{kmer:8s} {pos:8d}\n"
+    # Group by k-mer
+    kmer_dict = {}
+    for kmer, pos in index:
+        if kmer not in kmer_dict:
+            kmer_dict[kmer] = []
+        kmer_dict[kmer].append(pos)
     
-    if len(index) > max_rows:
-        result += f"\n... ({len(index) - max_rows} more entries)\n"
-    
-    result += f"\nTotal entries: {len(index)}\n"
+    # Display
+    count = 0
+    for kmer in sorted(kmer_dict.keys()):
+        if count >= max_rows:
+            remaining = len(kmer_dict) - count
+            result += f"\n... and {remaining} more k-mers\n"
+            break
+        
+        positions = kmer_dict[kmer]
+        pos_str = str(positions) if len(positions) <= 10 else str(positions[:10]) + "..."
+        result += f"{kmer:<10s} {pos_str}\n"
+        count += 1
     
     return result
