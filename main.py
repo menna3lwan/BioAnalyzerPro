@@ -1,7 +1,7 @@
 """
 BioAnalyzer Pro - Main Application
 Complete Bioinformatics Desktop Tool
-All 7 Tabs - COMPLETE VERSION
+All 8 Tabs - WITH EDIT DISTANCE (EMBEDDED)
 """
 
 import tkinter as tk
@@ -20,6 +20,154 @@ import algorithms.pattern_matching as pattern
 import algorithms.index_search as index
 import algorithms.suffix_array as suffix
 import algorithms.assembly as assembly
+
+
+# ============================================================================
+# EDIT DISTANCE FUNCTIONS (EMBEDDED) - NO SEPARATE FILE NEEDED
+# ============================================================================
+
+def edit_distance_DP(x, y):
+    """Calculate edit distance using Dynamic Programming"""
+    D = []
+    for i in range(len(x) + 1):
+        D.append([0] * (len(y) + 1))
+    
+    for i in range(len(x) + 1):
+        D[i][0] = i
+    
+    for i in range(len(y) + 1):
+        D[0][i] = i
+    
+    for i in range(1, len(x) + 1):
+        for j in range(1, len(y) + 1):
+            delta = 1 if x[i-1] != y[j-1] else 0
+            D[i][j] = min(
+                D[i-1][j-1] + delta,
+                D[i-1][j] + 1,
+                D[i][j-1] + 1
+            )
+    
+    return D[-1][-1]
+
+
+def edit_distance_with_matrix(x, y):
+    """Calculate edit distance and return matrix"""
+    D = []
+    for i in range(len(x) + 1):
+        D.append([0] * (len(y) + 1))
+    
+    for i in range(len(x) + 1):
+        D[i][0] = i
+    
+    for i in range(len(y) + 1):
+        D[0][i] = i
+    
+    for i in range(1, len(x) + 1):
+        for j in range(1, len(y) + 1):
+            delta = 1 if x[i-1] != y[j-1] else 0
+            D[i][j] = min(
+                D[i-1][j-1] + delta,
+                D[i-1][j] + 1,
+                D[i][j-1] + 1
+            )
+    
+    return D[-1][-1], D
+
+
+def format_edit_distance_matrix(D, x, y):
+    """Format DP matrix for display"""
+    result = []
+    header = "      " + "  ".join([" "] + list(y))
+    result.append(header)
+    result.append("-" * len(header))
+    
+    for i in range(len(x) + 1):
+        row_label = " " if i == 0 else x[i-1]
+        row = f"{row_label:2} | " + "  ".join(f"{D[i][j]:2}" for j in range(len(y) + 1))
+        result.append(row)
+    
+    return "\n".join(result)
+
+
+def traceback_alignment(x, y, D):
+    """Traceback to find alignment"""
+    i, j = len(x), len(y)
+    aligned_x, aligned_y, operations = [], [], []
+    
+    while i > 0 or j > 0:
+        if i > 0 and j > 0:
+            delta = 0 if x[i-1] == y[j-1] else 1
+            if D[i][j] == D[i-1][j-1] + delta:
+                operations.append('match' if delta == 0 else 'substitute')
+                aligned_x.append(x[i-1])
+                aligned_y.append(y[j-1])
+                i -= 1
+                j -= 1
+            elif D[i][j] == D[i-1][j] + 1:
+                operations.append('delete')
+                aligned_x.append(x[i-1])
+                aligned_y.append('-')
+                i -= 1
+            else:
+                operations.append('insert')
+                aligned_x.append('-')
+                aligned_y.append(y[j-1])
+                j -= 1
+        elif i > 0:
+            operations.append('delete')
+            aligned_x.append(x[i-1])
+            aligned_y.append('-')
+            i -= 1
+        else:
+            operations.append('insert')
+            aligned_x.append('-')
+            aligned_y.append(y[j-1])
+            j -= 1
+    
+    aligned_x.reverse()
+    aligned_y.reverse()
+    operations.reverse()
+    
+    return ''.join(aligned_x), ''.join(aligned_y), operations
+
+
+def format_alignment(aligned_x, aligned_y, operations):
+    """Format alignment for display"""
+    result = []
+    middle = []
+    for i in range(len(aligned_x)):
+        if operations[i] == 'match':
+            middle.append('|')
+        elif operations[i] == 'substitute':
+            middle.append('x')
+        elif operations[i] == 'delete':
+            middle.append('^')
+        else:
+            middle.append('v')
+    
+    result.append("Alignment:")
+    result.append(f"  {aligned_x}")
+    result.append(f"  {''.join(middle)}")
+    result.append(f"  {aligned_y}")
+    result.append("")
+    result.append("Legend: | = match, x = substitution, ^ = deletion, v = insertion")
+    
+    match_count = operations.count('match')
+    sub_count = operations.count('substitute')
+    del_count = operations.count('delete')
+    ins_count = operations.count('insert')
+    
+    result.append("")
+    result.append(f"Matches: {match_count}")
+    result.append(f"Substitutions: {sub_count}")
+    result.append(f"Deletions: {del_count}")
+    result.append(f"Insertions: {ins_count}")
+    
+    return "\n".join(result)
+
+# ============================================================================
+# END OF EDIT DISTANCE FUNCTIONS
+# ============================================================================
 
 
 class BioAnalyzerApp:
@@ -65,6 +213,7 @@ class BioAnalyzerApp:
         self.create_index_tab()
         self.create_suffix_tab()
         self.create_assembly_tab()
+        self.create_edit_distance_tab()  # NEW TAB
     
     def update_status(self, message):
         self.status_var.set(message)
@@ -137,11 +286,7 @@ GCTAGCTAGCTAGCTAG"""
         self.update_status("Example loaded")
     
     def parse_fasta(self):
-        # Get content from text widget - tkinter uses different newline representation
         content = self.fasta_input.get('1.0', 'end-1c')
-        
-        # Debug: check what we're getting
-        print(f"DEBUG - Raw content: {repr(content[:100])}")
         
         if not content or "Paste FASTA" in content:
             messagebox.showwarning("Warning", "Please provide FASTA content")
@@ -171,11 +316,7 @@ GCTAGCTAGCTAGCTAG"""
             
             self.update_status(f"✓ Parsed {len(sequences)} sequences")
         except Exception as e:
-            import traceback
-            error_detail = traceback.format_exc()
-            error_msg = f"Parsing failed:\n{str(e)}\n\nContent preview (first 200 chars):\n{repr(content[:200])}\n\n"
-            messagebox.showerror("Error", error_msg)
-            print(f"Full error:\n{error_detail}")
+            messagebox.showerror("Error", f"Parsing failed:\n{str(e)}")
             self.update_status("✗ Parsing failed")
     
     # TAB 2: DNA
@@ -420,7 +561,7 @@ GCTAGCTAGCTAGCTAG"""
             messagebox.showerror("Error", str(e))
             self.update_status("✗ Search failed")
     
-    # TAB 5: INDEX - FIXED
+    # TAB 5: INDEX
     def create_index_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['index'])
@@ -634,11 +775,7 @@ GCTAGCTAGCTAGCTAG"""
             
             self.update_status("✓ Suffix array built")
         except Exception as e:
-            import traceback
-            error_detail = traceback.format_exc()
-            error_msg = f"Build failed:\n{str(e)}\n\nSequence: {seq}\n\nFull error:\n{error_detail}"
-            messagebox.showerror("Error", error_msg)
-            print(f"Suffix array error:\n{error_detail}")
+            messagebox.showerror("Error", f"Build failed:\n{str(e)}")
             self.update_status("✗ Build failed")
     
     def clear_suffix_tab(self):
@@ -792,6 +929,134 @@ GCTAGCTAGCTAGCTAG"""
         except Exception as e:
             messagebox.showerror("Error", str(e))
             self.update_status("✗ Assembly failed")
+    
+    # TAB 8: EDIT DISTANCE - NEW TAB (EMBEDDED FUNCTIONS)
+    def create_edit_distance_tab(self):
+        tab = ttk.Frame(self.notebook)
+        self.notebook.add(tab, text="Edit Distance")
+        
+        tk.Label(tab, text="📁 Sequence X", font=Fonts.HEADING,
+                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
+        
+        tk.Button(tab, text="📝 Load Example", command=self.load_edit_distance_example,
+                  bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
+                  relief='flat', padx=15, pady=8, cursor='hand2').pack(anchor='w', padx=20, pady=5)
+        
+        self.edit_seq_x = tk.Entry(tab, font=Fonts.TEXT, bg=Colors.INPUT_BG)
+        self.edit_seq_x.pack(fill='x', padx=20, pady=(5, 10))
+        self.edit_seq_x.insert(0, "ACGACGT")
+        
+        tk.Label(tab, text="📁 Sequence Y", font=Fonts.HEADING,
+                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
+        
+        self.edit_seq_y = tk.Entry(tab, font=Fonts.TEXT, bg=Colors.INPUT_BG)
+        self.edit_seq_y.pack(fill='x', padx=20, pady=(5, 10))
+        self.edit_seq_y.insert(0, "TCGTACGT")
+        
+        tk.Label(tab, text="⚙️ Options", font=Fonts.HEADING,
+                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
+        
+        options_frame = tk.Frame(tab, bg=Colors.WHITE)
+        options_frame.pack(anchor='w', padx=20, pady=5)
+        
+        self.show_matrix = tk.BooleanVar(value=True)
+        tk.Checkbutton(options_frame, text="Show DP Matrix", variable=self.show_matrix,
+                      bg=Colors.WHITE, font=Fonts.LABEL).pack(side='left', padx=(0, 15))
+        
+        self.show_alignment = tk.BooleanVar(value=True)
+        tk.Checkbutton(options_frame, text="Show Alignment", variable=self.show_alignment,
+                      bg=Colors.WHITE, font=Fonts.LABEL).pack(side='left')
+        
+        action_frame = tk.Frame(tab, bg=Colors.WHITE)
+        action_frame.pack(anchor='w', padx=20, pady=10)
+        
+        tk.Button(action_frame, text="⚡ Calculate Distance", command=self.calculate_edit_distance,
+                  bg=Colors.SECONDARY, fg='white', font=Fonts.BUTTON,
+                  relief='flat', padx=20, pady=10, cursor='hand2').pack(side='left', padx=(0, 10))
+        
+        tk.Button(action_frame, text="🗑️ Clear", command=self.clear_edit_distance_tab,
+                  bg=Colors.WHITE, fg=Colors.TEXT_DARK, font=Fonts.BUTTON,
+                  relief='solid', bd=1, padx=20, pady=10, cursor='hand2').pack(side='left')
+        
+        tk.Label(tab, text="📊 Results", font=Fonts.HEADING,
+                 bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(10, 5))
+        
+        self.edit_results = scrolledtext.ScrolledText(tab, height=15, font=('Courier', 9),
+                                                       bg=Colors.OUTPUT_BG, wrap='none', state='disabled')
+        self.edit_results.pack(fill='both', expand=True, padx=20, pady=(5, 20))
+    
+    def load_edit_distance_example(self):
+        self.edit_seq_x.delete(0, 'end')
+        self.edit_seq_x.insert(0, "ACGACGT")
+        self.edit_seq_y.delete(0, 'end')
+        self.edit_seq_y.insert(0, "TCGTACGT")
+        self.update_status("Example loaded")
+    
+    def calculate_edit_distance(self):
+        x = self.edit_seq_x.get().strip().upper()
+        y = self.edit_seq_y.get().strip().upper()
+        
+        if not x or not y:
+            messagebox.showwarning("Warning", "Please provide both sequences")
+            return
+        
+        # Validate DNA sequences
+        valid_chars = set('ACGT')
+        if not all(c in valid_chars for c in x):
+            messagebox.showwarning("Input Error", "Sequence X contains invalid characters. Use only A, C, G, T.")
+            return
+        
+        if not all(c in valid_chars for c in y):
+            messagebox.showwarning("Input Error", "Sequence Y contains invalid characters. Use only A, C, G, T.")
+            return
+        
+        try:
+            self.update_status("Calculating edit distance...")
+            
+            # Calculate edit distance and get matrix - USING EMBEDDED FUNCTIONS
+            distance, matrix = edit_distance_with_matrix(x, y)
+            
+            # Build result
+            result = "=" * 60 + "\nEDIT DISTANCE ANALYSIS\n" + "=" * 60 + "\n\n"
+            result += f"Sequence X: {x} (length: {len(x)})\n"
+            result += f"Sequence Y: {y} (length: {len(y)})\n\n"
+            result += "=" * 60 + "\n"
+            result += f"EDIT DISTANCE: {distance}\n"
+            result += "=" * 60 + "\n\n"
+            
+            # Show DP matrix if requested
+            if self.show_matrix.get():
+                result += "DYNAMIC PROGRAMMING MATRIX:\n"
+                result += "-" * 60 + "\n"
+                result += format_edit_distance_matrix(matrix, x, y)
+                result += "\n\n"
+            
+            # Show alignment if requested
+            if self.show_alignment.get():
+                aligned_x, aligned_y, operations = traceback_alignment(x, y, matrix)
+                result += "=" * 60 + "\n"
+                result += format_alignment(aligned_x, aligned_y, operations)
+                result += "\n" + "=" * 60 + "\n"
+            
+            self.edit_results.config(state='normal')
+            self.edit_results.delete('1.0', 'end')
+            self.edit_results.insert('1.0', result)
+            self.edit_results.config(state='disabled')
+            
+            self.update_status(f"✓ Edit distance: {distance}")
+            messagebox.showinfo("Success", f"Edit distance calculated: {distance}")
+        
+        except Exception as e:
+            messagebox.showerror("Error", f"Calculation failed:\n{str(e)}")
+            self.update_status("✗ Calculation failed")
+    
+    def clear_edit_distance_tab(self):
+        self.edit_seq_x.delete(0, 'end')
+        self.edit_seq_y.delete(0, 'end')
+        self.edit_results.config(state='normal')
+        self.edit_results.delete('1.0', 'end')
+        self.edit_results.config(state='disabled')
+        self.update_status("Cleared")
     
     # UTILITY
     def clear_tab(self, input_widget, output_widget):

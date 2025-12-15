@@ -1,67 +1,50 @@
 """
-Configuration File
-Colors, Fonts, and Settings
+Configuration file for BioAnalyzer Pro
 """
 
-import os
 
 class Colors:
-    # Main colors
-    PRIMARY = "#3d5a80"          # Dark blue header
-    SECONDARY = "#3498db"        # Bright blue buttons
-    ACCENT = "#2ecc71"           # Green accent
-    BACKGROUND = "#f0f4f8"       # Light gray background
-    WHITE = "#ffffff"
+    """Color scheme"""
+    PRIMARY = "#2C5F7C"
+    SECONDARY = "#4A90A4"
+    ACCENT = "#89B5AF"
+    SUCCESS = "#52B788"
+    WARNING = "#F77F00"
+    ERROR = "#D62828"
     
-    # Tab colors
-    TAB_BG = "#e8eef3"
-    TAB_ACTIVE = "#ffffff"
+    BACKGROUND = "#F8F9FA"
+    WHITE = "#FFFFFF"
     
-    # Input/Output
-    INPUT_BG = "#f8f9fa"
-    OUTPUT_BG = "#fafbfc"
+    TEXT_DARK = "#212529"
+    TEXT_LIGHT = "#CED4DA"
     
-    # Text
-    TEXT_DARK = "#2c3e50"
-    TEXT_LIGHT = "#7f8c8d"
-    
-    # Status colors
-    SUCCESS = "#27ae60"
-    ERROR = "#e74c3c"
-    WARNING = "#f39c12"
-    INFO = "#3498db"
+    TAB_BG = "#E9ECEF"
+    INPUT_BG = "#F8F9FA"
+    OUTPUT_BG = "#F0F0F0"
 
 
 class Fonts:
-    TITLE = ("Arial", 24, "bold")
-    HEADING = ("Arial", 14, "bold")
-    LABEL = ("Arial", 11)
-    BUTTON = ("Arial", 10, "bold")
-    TEXT = ("Consolas", 10)
-    STATUS = ("Arial", 10)
+    """Font configurations"""
+    TITLE = ("Helvetica", 24, "bold")
+    HEADING = ("Helvetica", 12, "bold")
+    BUTTON = ("Helvetica", 10)
+    LABEL = ("Helvetica", 10)
+    TEXT = ("Courier", 10)
+    STATUS = ("Helvetica", 9)
 
 
 class Settings:
-    WINDOW_TITLE = "BioAnalyzer Pro"
+    """Application settings"""
+    WINDOW_TITLE = "🧬 BioAnalyzer Pro - Bioinformatics Tool"
     WINDOW_SIZE = "1200x800"
     MIN_SIZE = (1000, 700)
     
-    # Get base path
-    BASE_PATH = os.path.dirname(os.path.abspath(__file__))
-    ASSETS_PATH = os.path.join(BASE_PATH, 'assets')
-    
-    # Icon paths
-    ICON_ICO = os.path.join(ASSETS_PATH, 'icon.ico')
-    ICON_PNG = os.path.join(ASSETS_PATH, 'icon_256x256.png')
-    LOGO_PATH = os.path.join(ASSETS_PATH, 'logo.png')
-    
-    # Tab names
     TABS = {
-        'fasta': '📄 FASTA Parser',
+        'fasta': '📁 FASTA Parser',
         'dna': '🧬 DNA Analysis',
         'naive': '🔍 Naive Search',
         'boyer': '⚡ Boyer-Moore',
         'index': '📇 Index Search',
-        'suffix': '📊 Suffix Array',
+        'suffix': '🔤 Suffix Array',
         'assembly': '🧩 Assembly'
     }

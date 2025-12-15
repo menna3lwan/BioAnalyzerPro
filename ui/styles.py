@@ -1,48 +1,18 @@
 """
-UI Styles and Theme
+UI Styles configuration
 """
 
 from tkinter import ttk
-import sys
-import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import Colors
 
 
 def setup_styles():
-    """Configure ttk styles"""
+    """Setup TTK styles"""
     style = ttk.Style()
-    
-    # Use clam theme as base
     style.theme_use('clam')
     
-    # Configure Notebook (tabs)
-    style.configure('TNotebook', background=Colors.TAB_BG, borderwidth=0)
-    style.configure('TNotebook.Tab',
-                    background=Colors.TAB_BG,
-                    foreground=Colors.TEXT_DARK,
-                    padding=[15, 8],
-                    font=('Arial', 10))
-    style.map('TNotebook.Tab',
-              background=[('selected', Colors.TAB_ACTIVE)],
-              foreground=[('selected', Colors.PRIMARY)])
+    # Configure Notebook style
+    style.configure('TNotebook', background='#F8F9FA')
+    style.configure('TNotebook.Tab', padding=[20, 10], font=('Helvetica', 10))
     
-    # Configure Frame
-    style.configure('TFrame', background=Colors.WHITE)
-    
-    # Configure Label
-    style.configure('TLabel',
-                    background=Colors.WHITE,
-                    foreground=Colors.TEXT_DARK)
-    
-    # Configure Entry
-    style.configure('TEntry',
-                    fieldbackground=Colors.INPUT_BG,
-                    borderwidth=1)
-    
-    # Configure Checkbutton
-    style.configure('TCheckbutton',
-                    background=Colors.WHITE,
-                    foreground=Colors.TEXT_DARK)
-    
-    return style
+    # Configure Frame style
+    style.configure('TFrame', background='#FFFFFF')

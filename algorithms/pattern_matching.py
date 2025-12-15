@@ -1,104 +1,107 @@
 """
-Pattern Matching Algorithms
-Naive Search and Boyer-Moore
+Pattern Matching Module
+Naive and Boyer-Moore algorithms
 """
 
-import numpy as np
 
-
-def naive_match(seq, sub_seq):
+def naive_match(seq, pattern):
     """
-    Naive pattern matching - finds all occurrences
+    Naive pattern matching - find all occurrences
     
     Args:
         seq: Main sequence
-        sub_seq: Pattern to search
+        pattern: Pattern to search
         
     Returns:
         List of positions where pattern is found
     """
     positions = []
-    for i in range(len(seq)):
-        if sub_seq == seq[i:i+len(sub_seq)]:
+    for i in range(len(seq) - len(pattern) + 1):
+        if pattern == seq[i:i+len(pattern)]:
             positions.append(i)
     return positions
 
 
-def boyer_moore_match(seq, sub_seq):
+def boyer_moore_match(seq, pattern):
     """
     Boyer-Moore algorithm with Bad Character table
     
     Args:
         seq: Main sequence
-        sub_seq: Pattern to search
+        pattern: Pattern to search
         
     Returns:
-        Tuple of (positions, bad_char_table)
+        Tuple of (positions, bad_char_table_dict)
     """
-    # Build Bad Character table
-    table = np.zeros([4, len(sub_seq)])
-    row = ["A", "C", "G", "T"]
+    # Build Bad Character table as dictionary
+    bad_char = {}
+    for i, char in enumerate(pattern):
+        bad_char[char] = len(pattern) - 1 - i
     
-    for i in range(4):
-        num = -1
-        for j in range(len(sub_seq)):
-            if row[i] == sub_seq[j]:
-                table[i, j] = -1
-                num = -1
-            else:
-                num += 1
-                table[i, j] = num
-    
-    # Search using Bad Character table
+    # Search using Bad Character heuristic
     positions = []
     i = 0
-    while i < len(seq) - len(sub_seq) + 1:
-        if sub_seq == seq[i:i+len(sub_seq)]:
+    
+    while i <= len(seq) - len(pattern):
+        j = len(pattern) - 1
+        
+        # Check pattern from right to left
+        while j >= 0 and pattern[j] == seq[i + j]:
+            j -= 1
+        
+        if j < 0:
+            # Pattern found
             positions.append(i)
+            i += 1
         else:
-            for j in range(len(sub_seq) - 1, -1, -1):
-                if seq[i+j] != sub_seq[j]:
-                    if seq[i+j] in row:
-                        k = row.index(seq[i+j])
-                        i += int(table[k, j])
-                    break
-        i = int(i + 1)
+            # Mismatch - use bad character rule
+            bad_char_shift = bad_char.get(seq[i + j], len(pattern))
+            i += max(1, bad_char_shift)
     
-    return positions, table
+    return positions, bad_char
 
 
-def format_bad_char_table(table, pattern):
+def format_bad_char_table(bad_char, pattern):
     """Format Bad Character table for display"""
-    result = "Bad Character Table:\n\n"
-    result += "     " + "  ".join(list(pattern)) + "\n"
-    result += "   " + "-" * (len(pattern) * 3 + 2) + "\n"
+    result = "\nCharacter | Shift\n"
+    result += "-" * 20 + "\n"
     
-    bases = ["A", "C", "G", "T"]
-    for i, base in enumerate(bases):
-        result += f"{base} | "
-        for j in range(len(pattern)):
-            val = int(table[i, j])
-            result += f"{val:2d} "
-        result += "\n"
+    # Show shifts for characters in pattern
+    seen = set()
+    for char in pattern:
+        if char not in seen:
+            shift = bad_char.get(char, len(pattern))
+            result += f"{char:9s} | {shift:5d}\n"
+            seen.add(char)
+    
+    # Show shift for characters not in pattern
+    result += f"{'Other':9s} | {len(pattern):5d}\n"
     
     return result
 
 
-def format_match_results(seq, pattern, positions):
+def format_match_results(seq, pattern, positions, max_display=10):
     """Format match results with context"""
     if not positions:
-        return "No matches found."
+        return "No matches found.\n"
     
-    result = f"Found {len(positions)} match(es):\n\n"
+    result = ""
     
-    for i, pos in enumerate(positions[:10], 1):  # Show first 10
+    for i, pos in enumerate(positions[:max_display], 1):
         result += f"Match {i} at position {pos}:\n"
-        start = max(0, pos - 20)
-        end = min(len(seq), pos + len(pattern) + 20)
-        context = seq[start:pos] + f"[{seq[pos:pos+len(pattern)]}]" + seq[pos+len(pattern):end]
-        result += f"  ...{context}...\n\n"
+        
+        # Show context
+        context_start = max(0, pos - 10)
+        context_end = min(len(seq), pos + len(pattern) + 10)
+        context = seq[context_start:context_end]
+        
+        result += f"  {context}\n"
+        
+        # Show pointer
+        pointer_offset = pos - context_start
+        result += f"  {' ' * pointer_offset}{'^' * len(pattern)}\n\n"
     
-    if len(positions) > 10:
-        result += f"... and {len(positions) - 10} more matches\n"
+    if len(positions) > max_display:
+        result += f"... and {len(positions) - max_display} more matches\n"
     
     return result
