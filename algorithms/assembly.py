@@ -34,33 +34,26 @@ def find_all_overlaps(reads, k):
     
     Args:
         reads: List of sequences (strings)
-        k: Minimum overlap length
+        k: Minimum overlap length (minlength)
     
     Returns:
-        List of tuples: (index_a, index_b, overlap_length, overlap_sequence)
-        Sorted by overlap length (descending)
+        Dictionary mapping sequence pairs (a, b) to overlap lengths
     """
-    overlaps = []
-
-    for i, a in enumerate(reads):
-        for j, b in enumerate(reads):
-            if i == j:
-                continue
-            olen = find_overlap(a, b, k)
-            if olen > 0:
-                overlaps.append((i, j, olen, a[-olen:]))
-
-    # Sort by overlap length (descending)
-    overlaps.sort(key=lambda x: x[2], reverse=True)
+    overlaps = {}
+    for a, b in permutations(reads, 2):
+        overlap_length = find_overlap(a, b, k)
+        if overlap_length > 0:
+            overlaps[(a, b)] = overlap_length
     return overlaps
 
 
-def format_overlap_table(overlaps):
+def format_overlap_table(overlaps, reads=None):
     """
     Format overlap results as a table
     
     Args:
-        overlaps: List of overlap tuples
+        overlaps: Dictionary of overlap pairs to lengths
+        reads: Optional list of original sequences for index lookup
     
     Returns:
         Formatted string table
@@ -69,11 +62,17 @@ def format_overlap_table(overlaps):
         return "No overlaps found.\n"
 
     result = ""
-    result += f"{'Seq A':10s} {'Seq B':10s} {'Overlap':10s}\n"
-    result += "-" * 40 + "\n"
+    result += f"{'Seq A':30s} {'Seq B':30s} {'Overlap':10s}\n"
+    result += "-" * 80 + "\n"
 
-    for i, j, olen, _ in overlaps:
-        result += f"{i:<10d} {j:<10d} {olen:<10d}\n"
+    # Sort by overlap length (descending)
+    sorted_overlaps = sorted(overlaps.items(), key=lambda x: x[1], reverse=True)
+
+    for (seq_a, seq_b), olen in sorted_overlaps:
+        # Truncate sequences if too long
+        a_display = seq_a if len(seq_a) <= 25 else seq_a[:22] + "..."
+        b_display = seq_b if len(seq_b) <= 25 else seq_b[:22] + "..."
+        result += f"{a_display:30s} {b_display:30s} {olen:<10d}\n"
 
     return result
 
@@ -108,7 +107,7 @@ def get_overlap_stats(overlaps, sequences):
     Calculate statistics about overlaps
     
     Args:
-        overlaps: List of overlap tuples
+        overlaps: Dictionary of overlap pairs to lengths
         sequences: List of original sequences
     
     Returns:
@@ -122,7 +121,7 @@ def get_overlap_stats(overlaps, sequences):
             "avg_overlap_length": 0
         }
 
-    overlap_lengths = [o[2] for o in overlaps]
+    overlap_lengths = list(overlaps.values())
 
     return {
         "num_sequences": len(sequences),
@@ -188,7 +187,7 @@ def greedy_assembly(reads, k):
 
 def native_overlap(reads, k):
     """
-    Original implementation from bioinfmatch.py
+    Original implementation - wrapper for find_all_overlaps
     Returns dictionary with overlap information
     
     Args:
@@ -198,9 +197,4 @@ def native_overlap(reads, k):
     Returns:
         Dictionary mapping sequence pairs to overlap lengths
     """
-    olap = {}
-    for a, b in permutations(reads, 2):
-        olen = find_overlap(a, b, k)
-        if olen > 0:
-            olap[(a, b)] = olen
-    return olap
+    return find_all_overlaps(reads, k)

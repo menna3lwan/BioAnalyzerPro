@@ -135,6 +135,8 @@ def validate_dna_sequence(seq):
     return all(base in valid_bases for base in seq.upper())
 
 
+# Note: gc_content is already available in dna_operations.py
+# Keeping this here for backward compatibility with section1.py examples
 def gc_content(seq):
     """
     Calculate GC content (from example 3 in section1.py)

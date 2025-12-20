@@ -785,7 +785,7 @@ GCTAGCTAGCTAGCTAG"""
         self.suffix_results.config(state='disabled')
         self.update_status("Cleared")
     
-    # TAB 7: ASSEMBLY
+    # TAB 7: ASSEMBLY (UPDATED FOR NEW DICTIONARY-BASED OVERLAPS)
     def create_assembly_tab(self):
         tab = ttk.Frame(self.notebook)
         self.notebook.add(tab, text=Settings.TABS['assembly'])
@@ -846,6 +846,7 @@ GCTAGCTAGCTAGCTAG"""
         self.update_status("Example loaded")
     
     def find_overlaps(self):
+        """UPDATED: Handle dictionary-based overlaps from new assembly.py"""
         content = self.assembly_seqs.get('1.0', 'end-1c').strip()
         if not content or "Paste sequences" in content:
             messagebox.showwarning("Warning", "Please provide sequences")
@@ -860,6 +861,7 @@ GCTAGCTAGCTAGCTAG"""
             min_ov = int(self.min_overlap.get())
             self.update_status("Finding overlaps...")
             
+            # ✅ NEW: overlaps is now a dictionary {(seq_a, seq_b): overlap_length}
             overlaps = assembly.find_all_overlaps(sequences, min_ov)
             stats = assembly.get_overlap_stats(overlaps, sequences)
             
@@ -873,10 +875,18 @@ GCTAGCTAGCTAGCTAG"""
             if overlaps:
                 result += "Overlap Table:\n"
                 result += assembly.format_overlap_table(overlaps)
-                result += "\n\nOverlap Visualization:\n"
-                for i, j, length, _ in overlaps[:5]:
-                    result += assembly.visualize_overlap(sequences[i], sequences[j], length)
+                result += "\n\nOverlap Visualization (top 5):\n"
+                
+                # ✅ NEW: Iterate over dictionary items, sorted by overlap length
+                count = 0
+                for (seq_a, seq_b), length in sorted(overlaps.items(), 
+                                                       key=lambda x: x[1], 
+                                                       reverse=True):
+                    if count >= 5:
+                        break
+                    result += assembly.visualize_overlap(seq_a, seq_b, length)
                     result += "\n"
+                    count += 1
                 
                 if len(overlaps) > 5:
                     result += f"... and {len(overlaps) - 5} more overlaps\n"
@@ -933,7 +943,7 @@ GCTAGCTAGCTAGCTAG"""
     # TAB 8: EDIT DISTANCE - NEW TAB (EMBEDDED FUNCTIONS)
     def create_edit_distance_tab(self):
         tab = ttk.Frame(self.notebook)
-        self.notebook.add(tab, text="Edit Distance")
+        self.notebook.add(tab, text="🧬 Edit Distance")
         
         tk.Label(tab, text="📁 Sequence X", font=Fonts.HEADING,
                  bg=Colors.WHITE, fg=Colors.PRIMARY).pack(anchor='w', padx=20, pady=(20, 5))
@@ -1021,7 +1031,7 @@ GCTAGCTAGCTAGCTAG"""
             result += f"Sequence X: {x} (length: {len(x)})\n"
             result += f"Sequence Y: {y} (length: {len(y)})\n\n"
             result += "=" * 60 + "\n"
-            result += f"EDIT DISTANCE: {distance}\n"
+            result += f"EDIT DISTANCE: {int(distance)}\n"
             result += "=" * 60 + "\n\n"
             
             # Show DP matrix if requested
@@ -1043,8 +1053,8 @@ GCTAGCTAGCTAGCTAG"""
             self.edit_results.insert('1.0', result)
             self.edit_results.config(state='disabled')
             
-            self.update_status(f"✓ Edit distance: {distance}")
-            messagebox.showinfo("Success", f"Edit distance calculated: {distance}")
+            self.update_status(f"✓ Edit distance: {int(distance)}")
+            messagebox.showinfo("Success", f"Edit distance calculated: {int(distance)}")
         
         except Exception as e:
             messagebox.showerror("Error", f"Calculation failed:\n{str(e)}")
